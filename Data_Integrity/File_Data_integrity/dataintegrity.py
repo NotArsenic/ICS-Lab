@@ -68,16 +68,55 @@ if __name__ == "__main__":
 
     file = input_files[0]
     file_path = os.path.join(input_folder_path, file)
+    
+    inputcheck_folder_path = os.path.join(parent_dir, 'input_check')
+    
+    if not os.path.isdir(inputcheck_folder_path):
+        raise Exception(f"Input check folder path '{inputcheck_folder_path}' does not exist.")
+    if not os.path.isfile(os.path.join(inputcheck_folder_path, file)):
+        raise Exception(f"File '{file}' not found in the input check folder path '{inputcheck_folder_path}'.")
+    
+    inputcheck_files = [f for f in os.listdir(inputcheck_folder_path) if os.path.isfile(os.path.join(inputcheck_folder_path, f))]
+    
+    if len(inputcheck_files) == 0:
+        raise Exception(f"No files found in the input check folder path '{inputcheck_folder_path}'.")
+    
+    if len(inputcheck_files) > 1:
+        print(f"Multiple files found in the input check folder, checking only the first file '{inputcheck_files[0]}'.")
+        
+    check_file = inputcheck_files[0]
+    check_file_path = os.path.join(inputcheck_folder_path, check_file)
+    
 
-    print("\n\nChecking data integrity for file: ", file)
+    print(f"\n\nChecking data integrity for file: {file} with respect to file: {check_file}\n")
 
     md5 = calculate_md5(file_path, chunk_size)
     sha256 = calculate_sha256(file_path, chunk_size)
+    
+    md5_check = calculate_md5(check_file_path, chunk_size)
+    sha256_check = calculate_sha256(check_file_path, chunk_size)
 
     if md5 and sha256:
         print(f"MD5 Hash: {md5}")
         print(f"SHA-256 Hash: {sha256}")
 
     else: 
-        print("Failed to compute hashes.")
+        print("Failed to compute hashes for input files.")
+        exit(1)
+        
+    if md5_check and sha256_check:
+        print(f"\nMD5 Hash (Check File): {md5_check}")
+        print(f"SHA-256 Hash (Check File): {sha256_check}\n")
+    else:
+        print("Failed to compute hashes for check files.")
+        exit(1)
+    
+    if md5 == md5_check and sha256 == sha256_check:
+        print("MD5 Hashes match. Data integrity verified using MD5 & sha256.")
+        
+    
+    else:
+        print("MD5 Hashes do not match! Data integrity compromised using MD5 & sha256.")
+        
+    
 
